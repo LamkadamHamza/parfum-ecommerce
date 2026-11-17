@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --ivory: #f8f4eb;
+  --ink: #211b17;
+  --muted: #62584f;
+  --gold: #7c5429;
+  --line: #dfd5c5;
+}
+
+body { margin: 0; background: var(--ivory); color: var(--ink); font-family: system-ui, sans-serif; }
+app-root { display: flex; min-height: 100vh; flex-direction: column; }
+main { flex: 1; }
+a:focus-visible { outline: 2px solid var(--gold); outline-offset: 5px; }
+h1, h2, .wordmark { font-family: Georgia, serif; }
+h1 { font-size: clamp(2.7rem, 7vw, 5.5rem); line-height: 1.04; letter-spacing: -.045em; }
+h1 em { font-weight: 400; color: var(--gold); }
+.shell { width: min(100% - 2.5rem, 76rem); margin-inline: auto; }
+.page { padding-block: clamp(3rem, 7vw, 7rem); }
+.site-header { border-bottom: 1px solid var(--line); }
+.wordmark { font-size: 1.45rem; white-space: nowrap; }
+.site-nav, .site-footer { font-size: .9rem; }
+.site-nav a:hover, .site-footer a:hover, .active, .text-link { color: var(--gold); text-decoration: underline; text-underline-offset: .3em; }
+.site-footer { border-top: 1px solid var(--line); color: var(--muted); }
+.hero { display: grid; background: #eee6d6; }
+.hero-copy { align-self: center; padding: clamp(3.25rem, 8vw, 8rem) max(1.25rem, calc((100vw - 76rem) / 2)); padding-right: 1.25rem; }
+.hero-image { min-height: 22rem; background: #30231b url('/hero-perfume.webp') center 53% / cover no-repeat; }
+.eyebrow { margin-bottom: 1rem; color: var(--gold); font-size: .73rem; font-weight: 700; text-transform: uppercase; letter-spacing: .19em; }
+.hero-description { max-width: 28rem; margin-block: 1.5rem 2rem; color: var(--muted); line-height: 1.7; }
+.button { display: inline-flex; align-items: center; gap: 1.2rem; background: var(--ink); color: var(--ivory); padding: .85rem 1.2rem; font-size: .88rem; }
+.button:hover { background: #5b3b26; }
+.section-title { font-size: clamp(2rem, 4vw, 3.35rem); line-height: 1.12; letter-spacing: -.035em; }
+.muted { color: var(--muted); }
+.product-card { display: block; }
+.product-card:hover h2 { color: var(--gold); }
+.product-art { min-height: 16rem; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 35%, #f5e2c3, #d1ab7f); }
+.product-art[data-tone="iris"] { background: radial-gradient(ellipse at 50% 35%, #f2e7ef, #bcaab8); }
+.product-art[data-tone="sandal"] { background: radial-gradient(ellipse at 50% 35%, #f4eee0, #c5b08a); }
+.bottle { position: relative; display: grid; place-items: center; margin-top: 1.6rem; width: 6.8rem; height: 8.2rem; border: 2px solid #ffffff50; border-radius: 9px 9px 14px 14px; background: linear-gradient(100deg, #49220d, #a85b2b 30%, #693517 75%, #391d12); box-shadow: .65rem .8rem 1.3rem #3824164d; }
+.bottle::before { content: ''; position: absolute; top: -1.65rem; width: 2.7rem; height: 1.65rem; border-radius: 3px 3px 0 0; background: repeating-linear-gradient(90deg, #2b2722 0 3px, #38332b 3px 4px); }
+.bottle span { padding: .85rem .35rem; background: #f0e3c9; font: .65rem Georgia, serif; }
+.panel { border: 1px solid var(--line); padding: 1.25rem; }
+
+@media (min-width: 768px) {
+  .hero { grid-template-columns: 1.05fr 1fr; }
+  .hero-image { min-height: 33rem; }
+}

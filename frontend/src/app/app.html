@@ -1,0 +1,18 @@
+<header class="site-header">
+  <div class="shell flex flex-wrap items-center justify-between gap-x-8 gap-y-4 py-5">
+    <a routerLink="/" class="wordmark">Maison Ambrée</a>
+    <nav aria-label="Navigation principale" class="site-nav flex flex-wrap items-center gap-x-6 gap-y-3">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" ariaCurrentWhenActive="page">Accueil</a>
+      <a routerLink="/catalogue" routerLinkActive="active" ariaCurrentWhenActive="page">Catalogue</a>
+      <a routerLink="/panier" routerLinkActive="active" ariaCurrentWhenActive="page">Panier</a>
+    </nav>
+  </div>
+</header>
+<main><router-outlet /></main>
+<footer class="site-footer">
+  <div class="shell flex flex-wrap items-center justify-between gap-4 py-7">
+    <a routerLink="/" class="wordmark">Maison Ambrée</a>
+    <span>Boutique de démonstration</span>
+    <a routerLink="/admin">Administration</a>
+  </div>
+</footer>
