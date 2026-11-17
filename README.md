@@ -1,6 +1,6 @@
 # Maison Ambrée
 
-Socle technique d’une boutique de parfums. Le catalogue Angular contient trois parfums fictifs. PostgreSQL démarre avec un schéma vide, créé par Flyway.
+Boutique de parfums avec un catalogue Angular en lecture seule, alimenté par une API Spring Boot et PostgreSQL. Flyway crée le schéma.
 
 ## Démarrage avec Docker
 
@@ -46,6 +46,54 @@ npm ci
 npm start
 ```
 
+Ouvrir http://localhost:4200/catalogue pour rechercher les parfums, appliquer les filtres ou consulter une fiche. Le proxy du serveur Angular relaie `/api/**` vers le backend local sur le port 8080. Avec Compose, NGINX assure le relais.
+
+### Données locales
+
+Le profil `dev` charge trois parfums fictifs, deux marques, trois catégories et sept variantes après Flyway. Les insertions peuvent être rejouées sans écraser les lignes existantes. Définir `CATALOG_DEMO_ENABLED=false` pour utiliser une base de développement sans ajouter de nouvelles données de démonstration. Le profil `prod` désactive ce chargement, y compris si `dev` est également actif. Utiliser une base distincte pour la production.
+
+## API catalogue
+
+| Requête GET | Réponse |
+|---|---|
+| `/api/products` | Page de produits actifs avec leur marque, catégorie et prix de départ. |
+| `/api/products/{slug}` | Description, variantes classées par contenance, prix et quantité disponible. |
+| `/api/categories` | Catégories associées à au moins un produit actif. |
+| `/api/brands` | Marques associées à au moins un produit actif. |
+
+`GET /api/products` accepte `page` (index à partir de 0), `size` (12 par défaut, de 1 à 48), `search` (sous-chaîne littérale du nom, insensible à la casse), `category` et `brand` (slugs), `minPrice` et `maxPrice` (bornes incluses du prix de départ) et `sort` (`name,asc` par défaut, `name,desc`, `price,asc`, `price,desc`). Le slug départage les ex æquo. Un produit actif sans variante a un prix de départ nul au sens JSON et apparaît en fin de tri par prix. Il est exclu lorsqu’une borne de prix est fournie.
+
+Le prix de départ est la plus petite valeur numérique parmi les variantes, indépendamment de leur stock. La réponse conserve la devise de la variante retenue, sans conversion. La quantité disponible est le stock physique moins la quantité réservée. Une variante sans inventaire est considérée en rupture. Les paramètres invalides renvoient `400`. Un slug de produit absent ou inactif renvoie `404`. Les réponses d’erreur sont au format Problem Details.
+
+```sh
+curl 'http://localhost:8080/api/products?category=ambres&minPrice=60&maxPrice=100&size=5&sort=price,asc'
+curl 'http://localhost:8080/api/products/ambre-nocturne'
+```
+
+Avec les données de démonstration, la première requête renvoie cette page.
+
+```json
+{
+  "content": [{
+    "slug": "ambre-nocturne",
+    "name": "Ambre Nocturne",
+    "brand": {"slug": "maison-ambree", "name": "Maison Ambrée"},
+    "category": {"slug": "ambres", "name": "Ambrés"},
+    "startingPrice": {"amount": 65.00, "currency": "EUR"}
+  }],
+  "page": 0,
+  "size": 5,
+  "totalElements": 1,
+  "totalPages": 1
+}
+```
+
+La fiche contient le tableau `variants`. Exemple d’une entrée.
+
+```json
+{"sku":"DEMO-AMB-30","volumeMl":30,"price":{"amount":65.00,"currency":"EUR"},"availableQuantity":10}
+```
+
 ## Vérifications
 
 Depuis la racine du dépôt.
@@ -55,6 +103,8 @@ mvn -B -f backend/pom.xml verify
 docker compose config --quiet
 docker compose build
 ```
+
+Pour inclure les tests d’intégration PostgreSQL, créer une base de test dédiée et vide, puis définir `CATALOG_TEST_DB_URL`, `CATALOG_TEST_DB_USER` et `CATALOG_TEST_DB_PASSWORD` avant `mvn verify`. Flyway initialise cette base et les lignes de test sont annulées après chaque test. Sans `CATALOG_TEST_DB_URL`, cette suite est ignorée.
 
 Depuis `frontend/`.
 
@@ -67,10 +117,10 @@ npm test -- --watch=false
 
 ## Architecture
 
-- `backend/src/main/java/com/maisonambre/shop/` contient le monolithe Spring Boot. Les packages `product`, `category`, `brand`, `inventory`, `customer` et `order` délimitent les futurs modules métier. `security` contient la configuration HTTP et `common` expose la santé et les réponses d’erreur au format Problem Details.
-- `backend/src/main/resources/` contient les profils `dev` et `prod` et les migrations. Hibernate utilise `ddl-auto: validate`. Flyway est responsable de l’évolution du schéma. Les modèles JPA métier seront ajoutés avec leurs cas d’usage.
+- `backend/src/main/java/com/maisonambre/shop/` contient le monolithe Spring Boot. Les packages `product`, `category`, `brand`, `inventory`, `customer` et `order` délimitent les modules métier. Les repositories du catalogue lisent des projections et les contrôleurs exposent des DTO. `security` contient la configuration HTTP et `common` expose la santé et les réponses d’erreur au format Problem Details.
+- `backend/src/main/resources/` contient les profils `dev` et `prod` et les migrations. Hibernate utilise `ddl-auto: validate`. Flyway est responsable de l’évolution du schéma. Les entités du catalogue utilisent les tables de la migration V1.
 - `frontend/src/app/` contient le layout global de la boutique et les composants standalone répartis entre `storefront`, `catalog` et `admin`. Les routes panier, checkout et administration présentent des écrans de démarrage. L’administration est une maquette sans accès à des données ni à des opérations sensibles.
-- `frontend/public/` contient le visuel d’accueil généré pour le projet. Les produits de démonstration sont définis dans le code Angular, indépendamment de la base.
+- `frontend/public/` contient le visuel d’accueil généré pour le projet. L’accueil et le catalogue utilisent le même client HTTP.
 - `Jenkinsfile` définit une pipeline déclarative pour un agent Linux équipé du JDK 21, de Maven, de Node.js, de npm et de Docker Compose. Configurer une pipeline multibranche à partir de la source Git avec les composants Jenkins Pipeline et JUnit. Les étapes construisent les applications, lancent les tests et construisent les images. Le projet local peut être rattaché à un dépôt GitHub existant via un remote.
 
 ## Versions et compatibilité

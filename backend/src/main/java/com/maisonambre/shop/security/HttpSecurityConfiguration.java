@@ -13,7 +13,8 @@ public class HttpSecurityConfiguration {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, Environment environment) throws Exception {
         return http.authorizeHttpRequests(requests -> {
-            requests.requestMatchers(HttpMethod.GET, "/api/health").permitAll();
+            requests.requestMatchers(HttpMethod.GET, "/api/health", "/api/products",
+                    "/api/products/{slug}", "/api/categories", "/api/brands").permitAll();
             if (environment.acceptsProfiles(Profiles.of("dev & !prod"))) {
                 requests.requestMatchers(HttpMethod.GET, "/v3/api-docs", "/v3/api-docs/**",
                         "/swagger-ui.html", "/swagger-ui/**").permitAll();

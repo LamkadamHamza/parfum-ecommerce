@@ -1,23 +1,24 @@
+import { CurrencyPipe } from '@angular/common';
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DemoProduct } from './demo-products';
+import { ProductSummary } from './catalog-api';
 
 @Component({
   selector: 'app-product-card',
-  imports: [RouterLink],
+  imports: [RouterLink, CurrencyPipe],
   template: `
     <a [routerLink]="['/catalogue', product().slug]" class="product-card">
-      <div class="product-art" [attr.data-tone]="product().tone" aria-hidden="true">
+      <div class="product-art" aria-hidden="true">
         <div class="bottle"><span>Maison Ambrée</span></div>
       </div>
-      <div class="mt-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 class="text-2xl">{{ product().name }}</h2>
-        <span>{{ product().price }} €</span>
-      </div>
-      <p class="muted mt-1">{{ product().notes }}</p>
+      <p class="muted mt-4">{{ product().brand.name }} · {{ product().category.name }}</p>
+      <h2 class="mt-1 text-2xl">{{ product().name }}</h2>
+      @if (product().startingPrice; as price) {
+        <p class="mt-1">À partir de {{ price.amount | currency:price.currency:'symbol':'1.2-2':'fr' }}</p>
+      }
     </a>
   `,
 })
 export class ProductCard {
-  readonly product = input.required<DemoProduct>();
+  readonly product = input.required<ProductSummary>();
 }

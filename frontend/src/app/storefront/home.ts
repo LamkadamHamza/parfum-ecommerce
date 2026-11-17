@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { DEMO_PRODUCTS } from '../catalog/demo-products';
+import { CatalogApi, load } from '../catalog/catalog-api';
 import { ProductCard } from '../catalog/product-card';
 
 @Component({
@@ -16,16 +17,27 @@ import { ProductCard } from '../catalog/product-card';
       <div class="hero-image" role="img" aria-label="Flacon de parfum ambré sur un socle d’ardoise"></div>
     </section>
     <section class="shell py-14 sm:py-20">
-      <p class="eyebrow">Données de démonstration</p>
       <h2 class="section-title">Les parfums de la maison</h2>
-      <div class="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        @for (product of products; track product.slug) {
-          <app-product-card [product]="product" />
+      @if (featured(); as result) {
+        @switch (result.status) {
+          @case ('loading') { <p class="mt-6 muted" role="status">Chargement des parfums…</p> }
+          @case ('error') { <p class="mt-6 muted" role="alert">Les parfums sont momentanément indisponibles.</p> }
+          @case ('ready') {
+            @if (result.data.content.length === 0) {
+              <p class="mt-6 muted">Aucun parfum publié pour le moment.</p>
+            } @else {
+              <div class="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                @for (product of result.data.content; track product.slug) {
+                  <app-product-card [product]="product" />
+                }
+              </div>
+            }
+          }
         }
-      </div>
+      }
     </section>
   `,
 })
 export class HomePage {
-  protected readonly products = DEMO_PRODUCTS;
+  protected readonly featured = toSignal(load(inject(CatalogApi).products({ size: 3 })));
 }
